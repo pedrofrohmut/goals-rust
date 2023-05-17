@@ -1,0 +1,15 @@
+version: '3'
+services:
+    goals-postgres:
+        image: postgres:latest
+        container_name: goals-postgres
+        restart: always
+        environment:
+            POSTGRES_DB: goals_db
+            POSTGRES_USER: didorgas
+            POSTGRES_PASSWORD: 1234
+        volumes:
+            - $HOME/.docker/goals-postgres:/var/lib/postgresql/data
+        ports:
+            - 5432:5432
+
