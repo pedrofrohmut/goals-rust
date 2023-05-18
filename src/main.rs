@@ -3,7 +3,9 @@ use actix_web::{App, HttpServer};
 use crate::routes::users::*;
 use crate::routes::goals::*;
 
-pub mod routes;
+mod routes;
+mod db;
+mod data_access;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()>
