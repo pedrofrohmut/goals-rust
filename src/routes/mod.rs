@@ -1,2 +1,2 @@
-pub mod users;
-pub mod goals;
+pub mod user_routes;
+pub mod goal_routes;

@@ -1,11 +1,13 @@
 use actix_web::{App, HttpServer};
 
-use crate::routes::users::*;
-use crate::routes::goals::*;
+use crate::routes::goal_routes::*;
+use crate::routes::user_routes::*;
 
-mod routes;
-mod db;
 mod data_access;
+mod entities;
+mod routes;
+mod use_cases;
+mod db;
 
 #[actix_web::main]
 async fn main() -> std::io::Result<()>

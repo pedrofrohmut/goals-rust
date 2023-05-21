@@ -1,7 +1,7 @@
 use actix_web::{get, post, delete, web, HttpResponse, Responder};
 
 #[post("/api/goals")]
-async fn add_goal_route(_req_body: String) -> impl Responder
+pub async fn add_goal_route(_req_body: String) -> impl Responder
 {
     HttpResponse::Ok().body("Add Goal")
 }
