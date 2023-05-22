@@ -5,6 +5,7 @@ use crate::routes::user_routes::*;
 
 mod data_access;
 mod entities;
+mod errors;
 mod routes;
 mod use_cases;
 mod db;

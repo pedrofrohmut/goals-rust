@@ -1,5 +1,7 @@
 use serde::{Deserialize, Serialize};
 
+use crate::errors::user::InvalidUserErr;
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateUserDto {
     pub name: String,
@@ -30,7 +32,16 @@ impl User {
         }
     }
 
-    pub fn validate_name(name: &str) -> bool { true }
+    pub fn validate_name(name: &str) -> Result<(), InvalidUserErr>
+    {
+        if name.is_empty() {
+            Err(InvalidUserErr::new(Some(String::from("User name is required and cannot be blank"))))
+        } if name.len() < 5 || name.len() > 120 {
+            Err(InvalidUserErr::new(Some(String::from("User name must be between 5 and 120 characters long"))))
+        } else {
+            Ok(())
+        }
+    }
 
     pub fn validate_email(email: &str) -> bool { true }
 
