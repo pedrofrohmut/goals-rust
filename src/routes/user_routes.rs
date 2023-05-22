@@ -1,20 +1,11 @@
 use actix_web::{get, post, HttpResponse, Responder, web};
-use serde::{Deserialize, Serialize};
 
-use crate::use_cases::users::sign_up;
-
-#[derive(Debug, Deserialize, Serialize)]
-pub struct CreateUserBody {
-    pub name: String,
-    pub email: String,
-    pub password: String,
-    pub phone: String,
-}
+use crate::{use_cases::users::sign_up, entities::user::CreateUserDto};
 
 #[post("/api/users")]
-async fn signup_route(create_user_body: web::Json<CreateUserBody>) -> impl Responder
+async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
 {
-    let _res = sign_up::execute(create_user_body.into_inner()).await;
+    let _res = sign_up::execute(req_body.into_inner()).await;
 
     HttpResponse::Created().body("User created.")
 }
