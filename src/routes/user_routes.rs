@@ -5,9 +5,10 @@ use crate::{use_cases::users::sign_up, entities::user::CreateUserDto};
 #[post("/api/users")]
 async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
 {
-    let _res = sign_up::execute(req_body.into_inner()).await;
-
-    HttpResponse::Created().body("User created.")
+    match sign_up::execute(req_body.into_inner()).await {
+        Ok(_) => HttpResponse::Created().body("User created"),
+        Err(err) => HttpResponse::InternalServerError().body(format!("Server error: {}", err)),
+    }
 }
 
 #[post("/api/users/signin")]
