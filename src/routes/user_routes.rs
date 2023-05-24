@@ -6,13 +6,13 @@ use crate::{use_cases::users::sign_up::{self, SignUpError}, entities::user::Crea
 async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
 {
     match sign_up::execute(req_body.into_inner()).await {
-        Ok(_) => HttpResponse::Created().body("User created"),
         Err(err) => match err {
             SignUpError::DbError(db_err) =>
                 HttpResponse::InternalServerError().body(format!("Server error: {}", db_err)),
             SignUpError::RequestValidationError(validation_err) =>
                 HttpResponse::BadRequest().body(validation_err.to_string()),
-        }
+        },
+        Ok(_) => HttpResponse::Created().body("User created"),
     }
 }
 
