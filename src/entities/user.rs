@@ -123,6 +123,11 @@ impl User {
         }
     }
 
+    pub fn set_password_hash(&mut self, password_hash: String)
+    {
+        self.password_hash = password_hash;
+    }
+
     pub fn set_phone(&mut self, phone: String) -> Result<(), InvalidUserError>
     {
         match User::validate_phone(&phone) {
@@ -137,6 +142,8 @@ impl User {
     pub fn get_name(&self) -> String { self.name.clone() }
 
     pub fn get_email(&self) -> String { self.email.clone() }
+
+    pub fn get_password(&self) -> String { self.password.clone() }
 
     pub fn get_password_hash(&self) -> String { self.password_hash.clone() }
 

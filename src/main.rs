@@ -7,6 +7,7 @@ mod data_access;
 mod entities;
 mod errors;
 mod routes;
+mod services;
 mod use_cases;
 mod db;
 
