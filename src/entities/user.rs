@@ -13,7 +13,7 @@ pub struct CreateUserDto {
 }
 
 pub struct User {
-    id: String,
+    id: Uuid,
     name: String,
     email: String,
     password: String,
@@ -22,10 +22,10 @@ pub struct User {
 }
 
 impl User {
-    fn new() -> User
+    pub fn new() -> User
     {
         User {
-            id: String::from(""),
+            id: Uuid::new_v4(),
             name: String::from(""),
             email: String::from(""),
             password: String::from(""),
@@ -77,6 +77,14 @@ impl User {
         Ok(())
     }
 
+    pub fn validate_password_hash(password_hash: &str) -> Result<(), InvalidUserError>
+    {
+        if password_hash.is_empty() {
+            return Err(InvalidUserError::new(Some(String::from("User password_hash is required and cannot be empty"))));
+        }
+        Ok(())
+    }
+
     pub fn validate_phone(phone: &str) -> Result<(), InvalidUserError>
     {
         if phone.is_empty() {
@@ -88,6 +96,17 @@ impl User {
             return Err(InvalidUserError::new(Some(String::from("User phone is not in a valid phone pattern"))));
         }
         Ok(())
+    }
+
+    pub fn set_id(&mut self, id: String) -> Result<(), InvalidUserError>
+    {
+        match User::validate_id(&id) {
+            Err(err) => Err(err),
+            Ok(_) => {
+                self.id = Uuid::parse_str(&id).unwrap();
+                Ok(())
+            }
+        }
     }
 
     pub fn set_name(&mut self, name: String) -> Result<(), InvalidUserError>
@@ -123,9 +142,15 @@ impl User {
         }
     }
 
-    pub fn set_password_hash(&mut self, password_hash: String)
+    pub fn set_password_hash(&mut self, password_hash: String) -> Result<(), InvalidUserError>
     {
-        self.password_hash = password_hash;
+        match User::validate_password_hash(&password_hash) {
+            Err(err) => Err(err),
+            Ok(_) => {
+                self.password_hash = password_hash;
+                Ok(())
+            }
+        }
     }
 
     pub fn set_phone(&mut self, phone: String) -> Result<(), InvalidUserError>

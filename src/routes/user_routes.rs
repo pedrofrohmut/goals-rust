@@ -13,6 +13,9 @@ async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
             SignUpError::HashPasswordError(hash_err) => {
                 HttpResponse::InternalServerError().body(format!("Server error: {}", hash_err))
             }
+            SignUpError::EmailAlreadyTakenError(email_err) => {
+                HttpResponse::BadRequest().body(email_err.to_string())
+            }
             SignUpError::DbError(db_err) => {
                 HttpResponse::InternalServerError().body(format!("Server error: {}", db_err))
             }
