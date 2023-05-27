@@ -12,6 +12,8 @@ tokio = { version = "1.28.1", features = ["full"] } # Async/Await
 serde = { version = "1.0.163", features = ["derive"] } # JSON serialize/deserialize
 regex = "1"
 argon2 = "0.4.0" # Password hashing
+chrono = "0.4.24" # Superset of std::time
+jsonwebtoken = "8.3.0" # JWT
 
 [dependencies.uuid]
 version = "1.3.3"

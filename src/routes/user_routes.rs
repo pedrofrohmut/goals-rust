@@ -1,10 +1,15 @@
-use actix_web::{get, post, HttpResponse, Responder, web};
+use actix_web::{get, post, web, HttpResponse, Responder};
 
-use crate::{use_cases::users::sign_up::{self, SignUpError}, entities::user::CreateUserDto};
+use crate::{
+    entities::user::{CreateUserDto, CredentialsDto},
+    use_cases::users::{
+        sign_in::{self, SignInError},
+        sign_up::{self, SignUpError},
+    },
+};
 
 #[post("/api/users")]
-async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
-{
+async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder {
     match sign_up::execute(req_body.into_inner()).await {
         Err(err) => match err {
             SignUpError::RequestValidationError(validation_err) => {
@@ -25,13 +30,30 @@ async fn signup_route(req_body: web::Json<CreateUserDto>) -> impl Responder
 }
 
 #[post("/api/users/signin")]
-async fn signin_route(_req_body: String) -> impl Responder
-{
-    HttpResponse::Ok().body("Sign In")
+async fn signin_route(req_body: web::Json<CredentialsDto>) -> impl Responder {
+    match sign_in::execute(req_body.into_inner()).await {
+        Err(error) => match error {
+            SignInError::InvalidRequestError(req_err) => {
+                HttpResponse::BadRequest().body(req_err.to_string())
+            }
+            SignInError::DatabaseError(db_err) => {
+                HttpResponse::InternalServerError().body(db_err.to_string())
+            }
+            SignInError::UserNotFound(err) => {
+                HttpResponse::NotFound().body(err.to_string())
+            }
+            SignInError::PasswordAndHashDontMatchError(err) => {
+                HttpResponse::BadRequest().body(err.to_string())
+            }
+            SignInError::GenerateJwtError(err) => {
+                HttpResponse::InternalServerError().body(err.to_string())
+            }
+        },
+        Ok(signed_user) => HttpResponse::Ok().json(signed_user),
+    }
 }
 
 #[get("/api/users/verify")]
-async fn verify_token_route() -> impl Responder
-{
+async fn verify_token_route() -> impl Responder {
     HttpResponse::Ok().body("Verify Token")
 }
