@@ -2,7 +2,7 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier, SaltString},
     Argon2, PasswordHash,
 };
-use jsonwebtoken::encode;
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 use crate::entities::user::User;
@@ -44,7 +44,10 @@ struct Claims {
     exp: usize,
 }
 
-pub fn generate_auth_token(user: &User) -> Result<String, String> {
+// Change it to a env value, secure and long secret, for production
+const JWT_SECRET: &str = "JWT_SECRET";
+
+pub fn generate_auth_token(user: &User) -> Result<String, Box<dyn std::error::Error>> {
     let now = chrono::Utc::now();
     let one_day_duration = chrono::Duration::hours(24);
     let expiration = (now + one_day_duration).timestamp() as usize;
@@ -54,12 +57,18 @@ pub fn generate_auth_token(user: &User) -> Result<String, String> {
         exp: expiration,
     };
 
-    let secret = "JWT_SECRET"; // Change it to env value on production
-
-    let mut header = jsonwebtoken::Header::new(jsonwebtoken::Algorithm::HS512);
+    let mut header = Header::new(jsonwebtoken::Algorithm::HS512);
     header.kid = Some("blabla".to_owned());
-    let key = jsonwebtoken::EncodingKey::from_secret(secret.as_ref());
-    let token = encode(&header, &claims, &key).map_err(|err| err.to_string())?;
+    let key = EncodingKey::from_secret(JWT_SECRET.as_ref());
+    let token = encode(&header, &claims, &key)?;
 
     Ok(token)
+}
+
+pub fn get_id_from_token(token: &str) -> Result<String, Box<dyn std::error::Error>> {
+    let key = DecodingKey::from_secret(JWT_SECRET.as_ref());
+    let validation = Validation::new(jsonwebtoken::Algorithm::HS512);
+    let decoded = decode::<Claims>(&token, &key, &validation)?;
+    let user_id = decoded.claims.sub;
+    Ok(user_id)
 }

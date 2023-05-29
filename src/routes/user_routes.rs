@@ -1,10 +1,11 @@
-use actix_web::{get, post, web, HttpResponse, Responder};
+use actix_web::{get, post, web, HttpRequest, HttpResponse, Responder};
 
 use crate::{
     entities::user::{CreateUserDto, CredentialsDto},
     use_cases::users::{
         sign_in::{self, SignInError},
         sign_up::{self, SignUpError},
+        verify_token::{self, VerifyTokenError},
     },
 };
 
@@ -39,9 +40,8 @@ async fn signin_route(req_body: web::Json<CredentialsDto>) -> impl Responder {
             SignInError::DatabaseError(db_err) => {
                 HttpResponse::InternalServerError().body(db_err.to_string())
             }
-            SignInError::UserNotFound(err) => {
-                HttpResponse::NotFound().body(err.to_string())
-            }
+            SignInError::UserNotFound(err) => HttpResponse::NotFound().body(err.to_string()),
+
             SignInError::PasswordAndHashDontMatchError(err) => {
                 HttpResponse::BadRequest().body(err.to_string())
             }
@@ -54,6 +54,19 @@ async fn signin_route(req_body: web::Json<CredentialsDto>) -> impl Responder {
 }
 
 #[get("/api/users/verify")]
-async fn verify_token_route() -> impl Responder {
-    HttpResponse::Ok().body("Verify Token")
+async fn verify_token_route(req: HttpRequest) -> impl Responder {
+    let token = match req.headers().get("authorization") {
+        None => return HttpResponse::BadRequest().body("Missing JWT in authorization headers"),
+        Some(auth_header) => {
+            let auth_header = String::from(auth_header.to_str().unwrap());
+            let token = auth_header.split(" ").collect::<Vec<&str>>()[1].to_string();
+            token
+        }
+    };
+    match verify_token::execute(token) {
+        Err(error) => match error {
+            VerifyTokenError::DecodeTokenError(err_msg) => HttpResponse::BadRequest().body(err_msg),
+        },
+        Ok(_) => HttpResponse::Ok().body("Token Verified"),
+    }
 }
