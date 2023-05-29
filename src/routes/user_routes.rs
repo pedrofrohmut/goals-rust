@@ -63,9 +63,14 @@ async fn verify_token_route(req: HttpRequest) -> impl Responder {
             token
         }
     };
-    match verify_token::execute(token) {
+    match verify_token::execute(token).await {
         Err(error) => match error {
             VerifyTokenError::DecodeTokenError(err_msg) => HttpResponse::BadRequest().body(err_msg),
+
+            VerifyTokenError::DatabaseError(err_msg) => {
+                HttpResponse::InternalServerError().body(err_msg)
+            }
+            VerifyTokenError::UserNotFound(err_msg) => HttpResponse::NotFound().body(err_msg),
         },
         Ok(_) => HttpResponse::Ok().body("Token Verified"),
     }
