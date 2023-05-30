@@ -2,7 +2,7 @@ use tokio_postgres::Client;
 
 use crate::{
     data_access::user_data_access::find_user_by_id, db::establish_connection,
-    services::auth_services::get_id_from_token,
+    services::auth_services::validate_and_get_id_from_token,
 };
 
 pub enum VerifyTokenError {
@@ -12,7 +12,7 @@ pub enum VerifyTokenError {
 }
 
 pub async fn execute(token: String) -> Result<(), VerifyTokenError> {
-    let user_id = get_id_from_token(&token)
+    let user_id = validate_and_get_id_from_token(&token)
         .map_err(|err| VerifyTokenError::DecodeTokenError(err.to_string()))?;
 
     let client = get_connected_client().await?;

@@ -2,10 +2,8 @@ use argon2::{
     password_hash::{rand_core::OsRng, PasswordHasher, PasswordVerifier, SaltString},
     Argon2, PasswordHash,
 };
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
+use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, TokenData, Validation};
 use serde::{Deserialize, Serialize};
-
-use crate::entities::user::User;
 
 pub fn hash_password(password: &str) -> Result<String, String> {
     let password = password.as_bytes();
@@ -47,28 +45,42 @@ struct Claims {
 // Change it to a env value, secure and long secret, for production
 const JWT_SECRET: &str = "JWT_SECRET";
 
-pub fn generate_auth_token(user: &User) -> Result<String, Box<dyn std::error::Error>> {
+fn get_one_day_expiration() -> usize {
     let now = chrono::Utc::now();
     let one_day_duration = chrono::Duration::hours(24);
-    let expiration = (now + one_day_duration).timestamp() as usize;
+    (now + one_day_duration).timestamp() as usize
+}
 
+pub fn generate_auth_token(user_id: &str) -> Result<String, Box<dyn std::error::Error>> {
     let claims = Claims {
-        sub: user.get_id().to_string(),
-        exp: expiration,
+        sub: user_id.to_string(),
+        exp: get_one_day_expiration(),
+        // exp: chrono::Utc::now().timestamp() as usize, // gen a expired token for testing
     };
 
-    let mut header = Header::new(jsonwebtoken::Algorithm::HS512);
-    header.kid = Some("blabla".to_owned());
+    let header = Header::new(jsonwebtoken::Algorithm::HS512);
     let key = EncodingKey::from_secret(JWT_SECRET.as_ref());
     let token = encode(&header, &claims, &key)?;
 
     Ok(token)
 }
 
-pub fn get_id_from_token(token: &str) -> Result<String, Box<dyn std::error::Error>> {
+fn decode_token(token: &str) -> Result<TokenData<Claims>, Box<dyn std::error::Error>> {
     let key = DecodingKey::from_secret(JWT_SECRET.as_ref());
     let validation = Validation::new(jsonwebtoken::Algorithm::HS512);
     let decoded = decode::<Claims>(&token, &key, &validation)?;
+    Ok(decoded)
+}
+
+pub fn validate_and_get_id_from_token(token: &str) -> Result<String, String> {
+    let decoded = decode_token(&token).map_err(|err| err.to_string())?;
+
+    let expiration = decoded.claims.exp;
+    let now_in_sec = chrono::Utc::now().timestamp() as usize;
+    if expiration < now_in_sec {
+        return Err("The token is expired".to_string());
+    }
+
     let user_id = decoded.claims.sub;
     Ok(user_id)
 }

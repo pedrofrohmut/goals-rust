@@ -75,7 +75,9 @@ fn check_password(password: &str, hash: &str) -> Result<(), SignInError> {
 
 fn make_token(user: &User) -> Result<String, SignInError>
 {
-    let token = generate_auth_token(&user).map_err(|err| {
+    let user_id = user.get_id();
+
+    let token = generate_auth_token(&user_id).map_err(|err| {
         SignInError::GenerateJwtError(err.to_string())
     })?;
 
