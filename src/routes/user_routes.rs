@@ -7,6 +7,7 @@ use crate::{
         sign_up::{self, SignUpError},
         verify_token::{self, VerifyTokenError},
     },
+    utils::routes_utils::extract_token_from_headers,
 };
 
 #[post("/api/users")]
@@ -55,14 +56,11 @@ async fn signin_route(req_body: web::Json<CredentialsDto>) -> impl Responder {
 
 #[get("/api/users/verify")]
 async fn verify_token_route(req: HttpRequest) -> impl Responder {
-    let token = match req.headers().get("authorization") {
+    let token = match extract_token_from_headers(&req) {
         None => return HttpResponse::BadRequest().body("Missing JWT in authorization headers"),
-        Some(auth_header) => {
-            let auth_header = String::from(auth_header.to_str().unwrap());
-            let token = auth_header.split(" ").collect::<Vec<&str>>()[1].to_string();
-            token
-        }
+        Some(token) => token,
     };
+
     match verify_token::execute(token).await {
         Err(error) => match error {
             VerifyTokenError::DecodeTokenError(err_msg) => HttpResponse::BadRequest().body(err_msg),

@@ -9,6 +9,7 @@ mod errors;
 mod routes;
 mod services;
 mod use_cases;
+mod utils;
 mod db;
 
 #[actix_web::main]
