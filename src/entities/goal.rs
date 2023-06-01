@@ -7,7 +7,14 @@ use super::user::User;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct CreateGoalDto {
-    text: String,
+    pub text: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct GoalDto {
+    pub id: String,
+    pub text: String,
+    pub user_id: String,
 }
 
 pub struct Goal {
@@ -85,7 +92,10 @@ impl Goal {
         self.user_id.clone()
     }
 
-    pub fn from_create_goal_dto(create_goal: CreateGoalDto, user_id: &str) -> Result<Goal, InvalidGoalError> {
+    pub fn from_create_goal_dto(
+        create_goal: CreateGoalDto,
+        user_id: &str,
+    ) -> Result<Goal, InvalidGoalError> {
         let mut goal = Goal::new();
         if let Err(err) = goal.set_text(create_goal.text) {
             return Err(err);

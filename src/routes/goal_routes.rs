@@ -2,7 +2,10 @@ use actix_web::{delete, get, post, web, HttpRequest, HttpResponse, Responder};
 
 use crate::{
     entities::goal::CreateGoalDto,
-    use_cases::goals::create_goal::{self, CreateGoalError},
+    use_cases::goals::{
+        create_goal::{self, CreateGoalError},
+        get_all_goals::{self, GetAllGoalsError},
+    },
     utils::routes_utils::extract_user_id_from_headers,
 };
 
@@ -35,8 +38,24 @@ pub async fn add_goal_route(
 }
 
 #[get("/api/goals")]
-async fn get_goals_route() -> impl Responder {
-    HttpResponse::Ok().body("Get Goals")
+async fn get_goals_route(req: HttpRequest) -> impl Responder {
+    let user_id = match extract_user_id_from_headers(&req) {
+        None => {
+            return HttpResponse::BadRequest()
+                .body("Missing or invalid JWT in authorization headers")
+        }
+        Some(id) => id,
+    };
+
+    match get_all_goals::execute(user_id).await {
+        Err(error) => match error {
+            GetAllGoalsError::DatabaseError(err_msg) => {
+                HttpResponse::InternalServerError().body(err_msg)
+            }
+            GetAllGoalsError::UserNotFoundError(err_msg) => HttpResponse::NotFound().body(err_msg),
+        },
+        Ok(goals) => HttpResponse::Ok().json(goals),
+    }
 }
 
 #[delete("/api/goals/{goalId}")]
