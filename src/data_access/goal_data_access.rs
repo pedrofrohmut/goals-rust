@@ -87,3 +87,22 @@ pub async fn find_all_goals(
 
     Ok(goals)
 }
+
+pub async fn delete_goal(client: &Client, id: &str) -> Result<(), GoalDataAccessError> {
+    let sql = "DELETE FROM goals WHERE id = $1";
+
+    let stm = client
+        .prepare(sql)
+        .await
+        .map_err(|err| GoalDataAccessError::DatabaseError(err.to_string()))?;
+
+    let goal_id =
+        Uuid::parse_str(id).map_err(|err| GoalDataAccessError::ParameterError(err.to_string()))?;
+
+    client
+        .execute(&stm, &[&goal_id])
+        .await
+        .map_err(|err| GoalDataAccessError::DatabaseError(err.to_string()))?;
+
+    Ok(())
+}

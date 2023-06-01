@@ -4,10 +4,13 @@ use crate::{
     entities::goal::CreateGoalDto,
     use_cases::goals::{
         create_goal::{self, CreateGoalError},
+        delete_goal::{self, DeleteGoalError},
         get_all_goals::{self, GetAllGoalsError},
     },
     utils::routes_utils::extract_user_id_from_headers,
 };
+
+const JWT_MESSAGE: &'static str = "Missing or invalid JWT in authorization headers";
 
 #[post("/api/goals")]
 pub async fn add_goal_route(
@@ -15,10 +18,7 @@ pub async fn add_goal_route(
     req: HttpRequest,
 ) -> impl Responder {
     let user_id = match extract_user_id_from_headers(&req) {
-        None => {
-            return HttpResponse::BadRequest()
-                .body("Missing or invalid JWT in authorization headers")
-        }
+        None => return HttpResponse::BadRequest().body(JWT_MESSAGE),
         Some(id) => id,
     };
 
@@ -40,10 +40,7 @@ pub async fn add_goal_route(
 #[get("/api/goals")]
 async fn get_goals_route(req: HttpRequest) -> impl Responder {
     let user_id = match extract_user_id_from_headers(&req) {
-        None => {
-            return HttpResponse::BadRequest()
-                .body("Missing or invalid JWT in authorization headers")
-        }
+        None => return HttpResponse::BadRequest().body(JWT_MESSAGE),
         Some(id) => id,
     };
 
@@ -59,6 +56,26 @@ async fn get_goals_route(req: HttpRequest) -> impl Responder {
 }
 
 #[delete("/api/goals/{goalId}")]
-async fn delete_goal_route(_path: web::Path<String>) -> impl Responder {
-    HttpResponse::Ok().body("Delete goal")
+async fn delete_goal_route(req: HttpRequest, path: web::Path<String>) -> impl Responder {
+    let user_id = match extract_user_id_from_headers(&req) {
+        None => return HttpResponse::BadRequest().body(JWT_MESSAGE),
+        Some(id) => id,
+    };
+
+    let goal_id = path.into_inner();
+
+    match delete_goal::execute(goal_id, user_id).await {
+        Err(error) => match error {
+            DeleteGoalError::DatabaseError(err_msg) => {
+                HttpResponse::InternalServerError().body(err_msg)
+            }
+
+            DeleteGoalError::UserNotFoundError(err_msg) => HttpResponse::NotFound().body(err_msg),
+
+            DeleteGoalError::InvalidRequestError(err_msg) => {
+                HttpResponse::BadRequest().body(err_msg)
+            }
+        },
+        Ok(_) => HttpResponse::NoContent().body(""),
+    }
 }
