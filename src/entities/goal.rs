@@ -24,7 +24,7 @@ pub struct Goal {
 }
 
 impl Goal {
-    pub fn new() -> Goal {
+    fn new() -> Goal {
         Goal {
             id: String::from("NO _ID"),
             text: String::from("NO_TEXT"),
@@ -50,6 +50,7 @@ impl Goal {
         Ok(())
     }
 
+    // TODO: simplify it with validate using ? without the need for a match statement
     pub fn set_id(&mut self, id: String) -> Result<(), InvalidGoalError> {
         match Goal::validate_id(&id) {
             Err(err) => Err(err),
@@ -97,12 +98,16 @@ impl Goal {
         user_id: &str,
     ) -> Result<Goal, InvalidGoalError> {
         let mut goal = Goal::new();
-        if let Err(err) = goal.set_text(create_goal.text) {
-            return Err(err);
-        }
-        if let Err(err) = goal.set_user_id(user_id.to_string()) {
-            return Err(err);
-        }
+        goal.set_user_id(user_id.to_string())?;
+        goal.set_text(create_goal.text)?;
+        Ok(goal)
+    }
+
+    pub fn from_db_fields(id: &str, text: &str, user_id: &str) -> Result<Goal, InvalidGoalError> {
+        let mut goal = Goal::new();
+        goal.set_id(id.to_string())?;
+        goal.set_text(text.to_string())?;
+        goal.set_user_id(user_id.to_string())?;
         Ok(goal)
     }
 }

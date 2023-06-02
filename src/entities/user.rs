@@ -37,7 +37,7 @@ pub struct User {
 }
 
 impl User {
-    pub fn new() -> User {
+    fn new() -> User {
         User {
             id: String::from("NO_ID"),
             name: String::from("NO_NAME"),
@@ -212,29 +212,33 @@ impl User {
 
     pub fn from_create_user_dto(create_user: CreateUserDto) -> Result<User, InvalidUserError> {
         let mut user = User::new();
-        if let Err(err) = user.set_name(create_user.name) {
-            return Err(err);
-        }
-        if let Err(err) = user.set_email(create_user.email) {
-            return Err(err);
-        }
-        if let Err(err) = user.set_password(create_user.password) {
-            return Err(err);
-        }
-        if let Err(err) = user.set_phone(create_user.phone) {
-            return Err(err);
-        }
+        user.set_name(create_user.name)?;
+        user.set_email(create_user.email)?;
+        user.set_password(create_user.password)?;
+        user.set_phone(create_user.phone)?;
         Ok(user)
     }
 
     pub fn from_credentials_dto(credentials: CredentialsDto) -> Result<User, InvalidUserError> {
         let mut user = User::new();
-        if let Err(err) = user.set_email(credentials.email) {
-            return Err(err);
-        }
-        if let Err(err) = user.set_password(credentials.password) {
-            return Err(err);
-        }
+        user.set_email(credentials.email.to_string())?;
+        user.set_password(credentials.password.to_string())?;
+        Ok(user)
+    }
+
+    pub fn from_db_fields(
+        id: &Uuid,
+        name: &str,
+        email: &str,
+        password_hash: &str,
+        phone: &str,
+    ) -> Result<User, InvalidUserError> {
+        let mut user = User::new();
+        user.set_id(id.to_string())?;
+        user.set_name(name.to_string())?;
+        user.set_email(email.to_string())?;
+        user.set_password_hash(password_hash.to_string())?;
+        user.set_phone(phone.to_string())?;
         Ok(user)
     }
 }

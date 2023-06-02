@@ -68,18 +68,14 @@ pub async fn find_all_goals(
         return Ok(Vec::new());
     }
 
+    // Map Vec<Row> to Vec<entities::Goal>
     let user_id = user_id.to_string();
     let mut goals = Vec::new();
     for row in rows.iter() {
         let id = row.try_get::<_, Uuid>("id").unwrap_or_default().to_string();
         let text = row.try_get::<_, String>("text").unwrap_or_default();
 
-        let mut goal = Goal::new();
-        goal.set_id(id)
-            .map_err(|err| GoalDataAccessError::MappingError(err.to_string()))?;
-        goal.set_text(text)
-            .map_err(|err| GoalDataAccessError::MappingError(err.to_string()))?;
-        goal.set_user_id(user_id.clone())
+        let goal = Goal::from_db_fields(&id, &text, &user_id)
             .map_err(|err| GoalDataAccessError::MappingError(err.to_string()))?;
 
         goals.push(goal);

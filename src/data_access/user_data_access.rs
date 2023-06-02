@@ -66,22 +66,15 @@ pub async fn find_user_by_email(
         return Ok(None);
     }
 
-    let id: Uuid = rows[0].try_get("id").unwrap_or_default();
-    let name: String = rows[0].try_get("name").unwrap_or_default();
-    let email: String = rows[0].try_get("email").unwrap_or_default();
-    let password_hash: String = rows[0].try_get("password_hash").unwrap_or_default();
-    let phone: String = rows[0].try_get("phone").unwrap_or_default();
+    let id = rows[0].try_get::<_, Uuid>("id").unwrap_or_default();
+    let name = rows[0].try_get::<_, String>("name").unwrap_or_default();
+    let email = rows[0].try_get::<_, String>("email").unwrap_or_default();
+    let password_hash = rows[0]
+        .try_get::<_, String>("password_hash")
+        .unwrap_or_default();
+    let phone = rows[0].try_get::<_, String>("phone").unwrap_or_default();
 
-    let mut user = User::new();
-    user.set_id(id.to_string())
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_name(name)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_email(email)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_password_hash(password_hash)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_phone(phone)
+    let user = User::from_db_fields(&id, &name, &email, &password_hash, &phone)
         .map_err(|err| UserDataAccessError::MappingError(err))?;
 
     Ok(Some(user))
@@ -110,10 +103,7 @@ pub async fn find_user_by_id(
         return Ok(None);
     }
 
-    let id = rows[0]
-        .try_get::<_, Uuid>("id")
-        .unwrap_or_default()
-        .to_string();
+    let id = rows[0].try_get::<_, Uuid>("id").unwrap_or_default();
     let name = rows[0].try_get::<_, String>("name").unwrap_or_default();
     let email = rows[0].try_get::<_, String>("email").unwrap_or_default();
     let password_hash = rows[0]
@@ -121,16 +111,7 @@ pub async fn find_user_by_id(
         .unwrap_or_default();
     let phone = rows[0].try_get::<_, String>("phone").unwrap_or_default();
 
-    let mut user = User::new();
-    user.set_id(id)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_name(name)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_email(email)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_password_hash(password_hash)
-        .map_err(|err| UserDataAccessError::MappingError(err))?;
-    user.set_phone(phone)
+    let user = User::from_db_fields(&id, &name, &email, &password_hash, &phone)
         .map_err(|err| UserDataAccessError::MappingError(err))?;
 
     Ok(Some(user))
