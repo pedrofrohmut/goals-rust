@@ -127,63 +127,39 @@ impl User {
     }
 
     pub fn set_id(&mut self, id: String) -> Result<(), InvalidUserError> {
-        match User::validate_id(&id) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.id = id;
-                Ok(())
-            }
-        }
+        User::validate_id(&id)?;
+        self.id = id;
+        Ok(())
     }
 
     pub fn set_name(&mut self, name: String) -> Result<(), InvalidUserError> {
-        match User::validate_name(&name) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.name = name;
-                Ok(())
-            }
-        }
+        User::validate_name(&name)?;
+        self.name = name;
+        Ok(())
     }
 
     pub fn set_email(&mut self, email: String) -> Result<(), InvalidUserError> {
-        match User::validate_email(&email) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.email = email;
-                Ok(())
-            }
-        }
+        User::validate_email(&email)?;
+        self.email = email;
+        Ok(())
     }
 
     pub fn set_password(&mut self, password: String) -> Result<(), InvalidUserError> {
-        match User::validate_password(&password) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.password = password;
-                Ok(())
-            }
-        }
+        User::validate_password(&password)?;
+        self.password = password;
+        Ok(())
     }
 
     pub fn set_password_hash(&mut self, password_hash: String) -> Result<(), InvalidUserError> {
-        match User::validate_password_hash(&password_hash) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.password_hash = password_hash;
-                Ok(())
-            }
-        }
+        User::validate_password_hash(&password_hash)?;
+        self.password_hash = password_hash;
+        Ok(())
     }
 
     pub fn set_phone(&mut self, phone: String) -> Result<(), InvalidUserError> {
-        match User::validate_phone(&phone) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.phone = phone;
-                Ok(())
-            }
-        }
+        User::validate_phone(&phone)?;
+        self.phone = phone;
+        Ok(())
     }
 
     pub fn get_id(&self) -> String {

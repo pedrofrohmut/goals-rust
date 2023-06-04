@@ -50,35 +50,22 @@ impl Goal {
         Ok(())
     }
 
-    // TODO: simplify it with validate using ? without the need for a match statement
     pub fn set_id(&mut self, id: String) -> Result<(), InvalidGoalError> {
-        match Goal::validate_id(&id) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.id = id;
-                Ok(())
-            }
-        }
+        Goal::validate_id(&id)?;
+        self.id = id;
+        Ok(())
     }
 
     pub fn set_text(&mut self, text: String) -> Result<(), InvalidGoalError> {
-        match Goal::validate_text(&text) {
-            Err(err) => Err(err),
-            Ok(_) => {
-                self.text = text;
-                Ok(())
-            }
-        }
+        Goal::validate_text(&text)?;
+        self.text = text;
+        Ok(())
     }
 
     pub fn set_user_id(&mut self, user_id: String) -> Result<(), InvalidGoalError> {
-        match User::validate_id(&user_id) {
-            Err(err) => Err(InvalidGoalError::new(Some(err.to_string()))),
-            Ok(_) => {
-                self.user_id = user_id;
-                Ok(())
-            }
-        }
+        User::validate_id(&user_id).map_err(|err| InvalidGoalError::new(Some(err.to_string())))?;
+        self.user_id = user_id;
+        Ok(())
     }
 
     pub fn get_id(&self) -> String {
